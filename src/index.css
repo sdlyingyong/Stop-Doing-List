@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0a0a0a] text-stone-200 min-h-screen font-sans;
+  }
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+.brick-shadow {
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
+}
