@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Plus, ShieldAlert, Trash2, Sparkles, Info, Target, Clock, Zap, 
+  Plus, ShieldAlert, Trash2, Sparkles, Target, Clock, Zap, 
   Heart, Users, Briefcase, Coins, HelpCircle, History, LayoutGrid, 
-  ArrowRight, CheckCircle2, AlertCircle, ChevronLeft, Download, Upload,
-  FileJson, FileText, Settings
+  ArrowRight, CheckCircle2, AlertCircle, FileText, Settings,
+  Upload
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -23,6 +23,19 @@ const CATEGORIES = [
   { id: 'other', label: '其他', icon: HelpCircle, color: 'border-stone-500', glow: 'bg-stone-500/20', text: 'text-stone-400' },
 ];
 
+const INSIGHTS = [
+  { text: "不做不对的事情，比做对的事情更重要。", author: "段永平" },
+  { text: "Stop Doing List 比 To Do List 更重要。", author: "段永平" },
+  { text: "发现错了马上改，不管多大的代价都是最小的代价。", author: "段永平" },
+  { text: "Pain + Reflection = Progress. (痛苦 + 反思 = 进步)", author: "Ray Dalio" },
+  { text: "如果你不失败，说明你没有在挑战极限。", author: "Ray Dalio" },
+  { text: "我只想知道我将来会死在什么地方，这样我就可以永远不去那里了。", author: "Charlie Munger" },
+  { text: "反过来想，总是反过来想。", author: "Charlie Munger" },
+  { text: "通过努力保持不愚蠢，而不是努力变得非常聪明，能获得巨大的长期优势。", author: "Charlie Munger" },
+  { text: "如果我知道我会死在哪里，我一辈子都不会去那个地方。", author: "Charlie Munger" },
+  { text: "避开愚蠢比追求卓越更容易，也更有效。", author: "Charlie Munger" },
+];
+
 interface NotToDoItem {
   id: string;
   text: string;
@@ -36,6 +49,12 @@ type View = 'pyramid' | 'audit';
 export default function App() {
   const [items, setItems] = useState<NotToDoItem[]>([]);
   const [currentView, setCurrentView] = useState<View>('pyramid');
+  const [randomQuote, setRandomQuote] = useState(INSIGHTS[0]);
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * INSIGHTS.length);
+    setRandomQuote(INSIGHTS[randomIndex]);
+  }, []);
   
   // Pyramid State
   const [inputText, setInputText] = useState('');
@@ -101,32 +120,62 @@ export default function App() {
     setCurrentView('pyramid');
   };
 
-  const exportJSON = () => {
-    const data = JSON.stringify(items, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `nottodo-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const importMarkdown = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const imported = JSON.parse(event.target?.result as string);
-        if (Array.isArray(imported)) {
-          if (confirm('导入将覆盖当前所有数据，是否继续？')) {
-            setItems(imported);
+        const content = event.target?.result as string;
+        const sections = content.split('## ').slice(1);
+        const importedItems: NotToDoItem[] = sections.map(section => {
+          const lines = section.split('\n');
+          const title = lines[0].replace(/^\d+\.\s+/, '').trim();
+          
+          let category = 'other';
+          const catLine = lines.find(l => l.includes('**分类**:'));
+          if (catLine) {
+            const catLabel = catLine.split(': ')[1].trim();
+            category = CATEGORIES.find(c => c.label === catLabel)?.id || 'other';
+          }
+
+          let timestamp = Date.now();
+          const timeLine = lines.find(l => l.includes('**建立时间**:'));
+          if (timeLine) {
+            const dateStr = timeLine.split(': ')[1].trim();
+            timestamp = new Date(dateStr).getTime() || Date.now();
+          }
+
+          let reflection = '';
+          const reflectionStart = lines.findIndex(l => l.includes('**前车之鉴**:'));
+          if (reflectionStart !== -1) {
+            reflection = lines.slice(reflectionStart + 2)
+              .filter(l => l.startsWith('> '))
+              .map(l => l.replace(/^> /, ''))
+              .join('\n')
+              .split('---')[0]
+              .trim();
+          }
+
+          return {
+            id: Math.random().toString(36).substring(2, 9),
+            text: title,
+            category,
+            reflection,
+            timestamp
+          };
+        });
+
+        if (importedItems.length > 0) {
+          if (confirm(`识别到 ${importedItems.length} 条准则，是否导入并覆盖当前数据？`)) {
+            setItems(importedItems);
             setShowDataModal(false);
           }
+        } else {
+          alert('未能从 Markdown 中识别到有效数据');
         }
       } catch (err) {
-        alert('无效的 JSON 文件');
+        alert('解析 Markdown 失败');
       }
     };
     reader.readAsText(file);
@@ -192,13 +241,6 @@ export default function App() {
           <History size={16} />
           黑洞审计
         </button>
-        <button 
-          onClick={() => setShowDataModal(true)}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all text-stone-500 hover:text-stone-300"
-        >
-          <Settings size={16} />
-          数据管理
-        </button>
       </nav>
 
       <div className="pt-20 w-full flex flex-col items-center">
@@ -214,43 +256,30 @@ export default function App() {
                 <ShieldAlert className="text-amber-500 w-5 h-5" />
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter mb-3 text-transparent bg-clip-text bg-gradient-to-b from-stone-100 to-stone-400">
-                不为清单 · 行为金字塔
+                不为清单 · 金字塔
               </h1>
-              <p className="text-stone-500 font-medium max-w-md mx-auto leading-relaxed text-sm sm:text-base">
-                “不为”是为了更好的“为”。通过明确边界，减少绕路，守住长期主义的底线。
-              </p>
               
-              <button 
-                onClick={() => setShowInfo(!showInfo)}
-                className="mt-4 text-stone-600 hover:text-amber-500 transition-colors flex items-center gap-1 mx-auto text-xs uppercase tracking-widest font-bold"
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="max-w-md mx-auto mt-6 p-4 rounded-2xl bg-stone-900/30 border border-stone-800/50 backdrop-blur-sm relative group cursor-pointer"
+                onClick={() => {
+                  const nextIndex = (INSIGHTS.indexOf(randomQuote) + 1) % INSIGHTS.length;
+                  setRandomQuote(INSIGHTS[nextIndex]);
+                }}
               >
-                <Info size={14} />
-                什么是“不为清单”？
-              </button>
+                <div className="absolute -top-2 -left-2 text-amber-500/20 group-hover:text-amber-500/40 transition-colors">
+                  <Sparkles size={24} />
+                </div>
+                <p className="text-stone-400 text-sm italic leading-relaxed mb-2">
+                  “{randomQuote.text}”
+                </p>
+                <div className="text-[10px] text-stone-600 font-bold uppercase tracking-widest text-right">
+                  —— {randomQuote.author}
+                </div>
+              </motion.div>
             </motion.header>
-
-            {/* Info Modal */}
-            <AnimatePresence>
-              {showInfo && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden w-full max-w-2xl mb-8"
-                >
-                  <div className="bg-stone-900/50 border border-stone-800 p-6 rounded-2xl text-stone-400 text-sm leading-relaxed">
-                    <p className="mb-3">
-                      <strong className="text-stone-200">不为清单 (Not-To-Do List)</strong> 是一种通过“减法”获得高效的策略。
-                    </p>
-                    <ul className="space-y-2 list-disc list-inside">
-                      <li><span className="text-amber-500/80">专注：</span> 排除那些消耗精力但无意义的琐事。</li>
-                      <li><span className="text-amber-500/80">防错：</span> 明确那些会让你偏离目标的诱惑。</li>
-                      <li><span className="text-amber-500/80">积累：</span> 每一块“不为”之砖，都是在为你的核心目标加固地基。</li>
-                    </ul>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Pyramid Container */}
             <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible">
@@ -332,7 +361,7 @@ export default function App() {
                       <Target size={32} />
                     </div>
                     <p className="text-stone-600 italic text-sm text-center max-w-xs">
-                      “智慧在于知道该忽略什么。”<br/>开始铸造你的第一块行为边界。
+                      “智慧在于知道该忽略什么。”<br/>开始铸造你的第一块边界。
                     </p>
                   </motion.div>
                 )}
@@ -352,7 +381,7 @@ export default function App() {
                     <div className="flex items-center justify-between px-1">
                       <div className="flex items-center gap-2 text-amber-500 text-xs font-bold uppercase tracking-widest">
                         <ShieldAlert size={14} />
-                        铸造行为边界
+                        铸造边界
                       </div>
                       <button onClick={() => setIsAdding(false)} className="text-stone-500 hover:text-stone-300">
                         <Plus size={18} className="rotate-45" />
@@ -428,14 +457,6 @@ export default function App() {
                   </motion.button>
                 )}
               </AnimatePresence>
-              
-              <div className="mt-6 flex justify-between items-center px-4 text-[10px] uppercase tracking-[0.2em] text-stone-600 font-black">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  已建立 {items.length} 条边界
-                </div>
-                <span>LV. {rows.length} 专注等级</span>
-              </div>
             </div>
           </>
         ) : (
@@ -502,7 +523,7 @@ export default function App() {
                     <div className="flex items-center gap-3 text-amber-500 font-bold uppercase tracking-widest text-xs">
                       <Zap size={16} /> 第二步：深挖根源
                     </div>
-                    <h3 className="text-xl font-semibold text-stone-100">导致这次失败的核心行为或心态是什么？</h3>
+                    <h3 className="text-xl font-semibold text-stone-100">导致这次失败的核心原因或心态是什么？</h3>
                     <textarea 
                       placeholder="例如：贪婪、缺乏独立思考、过度自信、没有设置止损线..."
                       value={auditCause}
@@ -659,38 +680,27 @@ export default function App() {
 
               <div className="space-y-6">
                 <div className="p-4 bg-stone-800/50 rounded-2xl border border-stone-700">
-                  <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-4">备份与恢复 (JSON)</p>
+                  <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-4">Markdown 笔记管理</p>
                   <div className="grid grid-cols-2 gap-3">
                     <button 
-                      onClick={exportJSON}
+                      onClick={exportMarkdown}
                       className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-stone-800 hover:bg-stone-700 transition-colors border border-stone-700 group"
                     >
-                      <FileJson className="text-amber-500 group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">导出 JSON</span>
+                      <FileText className="text-amber-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">导出笔记</span>
                     </button>
                     <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-stone-800 hover:bg-stone-700 transition-colors border border-stone-700 group cursor-pointer">
                       <Upload className="text-amber-500 group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">导入 JSON</span>
-                      <input type="file" accept=".json" onChange={importJSON} className="hidden" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">导入笔记</span>
+                      <input type="file" accept=".md" onChange={importMarkdown} className="hidden" />
                     </label>
                   </div>
                 </div>
 
-                <div className="p-4 bg-stone-800/50 rounded-2xl border border-stone-700">
-                  <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-4">归档与阅读 (Markdown)</p>
-                  <button 
-                    onClick={exportMarkdown}
-                    className="w-full flex items-center justify-center gap-3 p-4 rounded-xl bg-stone-800 hover:bg-stone-700 transition-colors border border-stone-700 group"
-                  >
-                    <FileText className="text-amber-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">导出为 Markdown 笔记</span>
-                  </button>
-                </div>
-
                 <div className="text-center">
                   <p className="text-[10px] text-stone-600 leading-relaxed">
-                    JSON 格式适用于在不同设备间迁移数据。<br/>
-                    Markdown 格式适用于在 Notion、Obsidian 等笔记软件中查看。
+                    Markdown 格式适用于在 Notion、Obsidian 等笔记软件中查看，<br/>
+                    同时也支持通过导入 Markdown 文件来恢复您的金字塔数据。
                   </p>
                 </div>
               </div>
@@ -698,6 +708,17 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Small Data Management Trigger */}
+      <div className="fixed bottom-6 right-6 z-[100]">
+        <button 
+          onClick={() => setShowDataModal(true)}
+          className="p-3 rounded-full bg-stone-900/50 border border-stone-800 text-stone-600 hover:text-amber-500 hover:border-amber-500/30 transition-all shadow-xl backdrop-blur-sm"
+          title="数据管理"
+        >
+          <Settings size={18} />
+        </button>
+      </div>
     </div>
   );
 }
