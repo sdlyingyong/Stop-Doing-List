@@ -4,7 +4,7 @@ import {
   Plus, ShieldAlert, Trash2, Sparkles, Target, Clock, Zap, 
   Heart, Users, Briefcase, Coins, HelpCircle, History, LayoutGrid, 
   ArrowRight, CheckCircle2, AlertCircle, FileText, Settings,
-  Upload, Edit3
+  Upload, Edit3, ChevronLeft
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -89,6 +89,7 @@ export default function App() {
   const [editingItem, setEditingItem] = useState<NotToDoItem | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
+  const [showAuditMenu, setShowAuditMenu] = useState(false);
 
   // Audit Wizard State
   const [auditStep, setAuditStep] = useState(0);
@@ -275,22 +276,6 @@ export default function App() {
         >
           <LayoutGrid size={16} />
           {language === 'zh' ? '金字塔' : 'Pyramid'}
-        </button>
-        <button 
-          onClick={() => setCurrentView('audit')}
-          className={cn(
-            "flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all",
-            currentView === 'audit' ? "bg-amber-500 text-stone-950 shadow-lg" : "text-stone-500 hover:text-stone-300"
-          )}
-        >
-          <History size={16} />
-          {language === 'zh' ? '黑洞审计' : 'Black Hole Audit'}
-        </button>
-        <button 
-          onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all text-stone-500 hover:text-stone-300"
-        >
-          {language === 'zh' ? 'EN' : '中'}
         </button>
       </nav>
 
@@ -512,7 +497,35 @@ export default function App() {
                     <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-stone-950 group-hover:scale-110 transition-transform">
                       <Plus size={20} />
                     </div>
-                    <span>添加“不为”准则</span>
+                    <div className="flex items-center gap-2">
+                      <span>{language === 'zh' ? '添加"不为"准则' : 'Add Not-To-Do Rule'}</span>
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowAuditMenu(!showAuditMenu);
+                          }}
+                          className="ml-2 p-1 rounded-full text-stone-500 hover:text-amber-500 transition-colors"
+                        >
+                          <ChevronLeft size={14} className={cn("transition-transform", showAuditMenu && "rotate-90")} />
+                        </button>
+                        {showAuditMenu && (
+                          <div className="absolute bottom-full left-0 mb-2 bg-stone-800 border border-stone-700 rounded-lg shadow-xl p-2 min-w-[150px] z-50">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAuditMenu(false);
+                                setCurrentView('audit');
+                              }}
+                              className="w-full text-left px-3 py-2 rounded hover:bg-stone-700 transition-colors text-stone-300 flex items-center gap-2"
+                            >
+                              <History size={16} className="text-amber-500" />
+                              <span className="text-sm">{language === 'zh' ? '黑洞审计' : 'Black Hole Audit'}</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -732,9 +745,17 @@ export default function App() {
                   <Settings className="text-amber-500" size={20} />
                   {language === 'zh' ? '数据管理' : 'Data Management'}
                 </h3>
-                <button onClick={() => setShowDataModal(false)} className="text-stone-500 hover:text-stone-300">
-                  <Plus size={24} className="rotate-45" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setShowDataModal(false)} className="text-stone-500 hover:text-stone-300">
+                    <Plus size={24} className="rotate-45" />
+                  </button>
+                  <button 
+                    onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+                    className="p-2 rounded-full bg-stone-800/50 border border-stone-700 text-stone-400 hover:text-amber-500 hover:border-amber-500/30 transition-all"
+                  >
+                    {language === 'zh' ? 'EN' : '中'}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-6">
