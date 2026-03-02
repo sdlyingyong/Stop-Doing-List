@@ -65,6 +65,8 @@ interface NotToDoItem {
   category: string;
   reflection: string;
   timestamp: number;
+  socialContext?: string;
+  tenYearDecision?: string;
 }
 
 type View = 'pyramid' | 'audit';
@@ -97,6 +99,8 @@ export default function App() {
   const [auditCause, setAuditCause] = useState('');
   const [auditRule, setAuditRule] = useState('');
   const [auditCategory, setAuditCategory] = useState('work');
+  const [auditSocialContext, setAuditSocialContext] = useState('');
+  const [auditTenYearDecision, setAuditTenYearDecision] = useState('');
 
   // Load from local storage
   useEffect(() => {
@@ -115,13 +119,15 @@ export default function App() {
     localStorage.setItem('nottodo-pyramid-v3', JSON.stringify(items));
   }, [items]);
 
-  const addItem = (text: string, cat: string, refl: string) => {
+  const addItem = (text: string, cat: string, refl: string, social?: string, decision?: string) => {
     const newItem: NotToDoItem = {
       id: Math.random().toString(36).substring(2, 9),
       text: text.trim(),
       category: cat,
       reflection: refl.trim(),
       timestamp: Date.now(),
+      socialContext: social?.trim(),
+      tenYearDecision: decision?.trim(),
     };
     setItems([...items, newItem]);
   };
@@ -158,11 +164,13 @@ export default function App() {
   };
 
   const completeAudit = () => {
-    addItem(auditRule, auditCategory, `历史教训：${auditFailure}\n根本原因：${auditCause}`);
+    addItem(auditRule, auditCategory, `历史教训：${auditFailure}\n根本原因：${auditCause}`, auditSocialContext, auditTenYearDecision);
     setAuditStep(0);
     setAuditFailure('');
     setAuditCause('');
     setAuditRule('');
+    setAuditSocialContext('');
+    setAuditTenYearDecision('');
     setCurrentView('pyramid');
   };
 
@@ -528,6 +536,67 @@ export default function App() {
                     </div>
                   </motion.button>
                 )}
+
+                {auditStep === 4 && (
+                  <motion.div 
+                    key="step4"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="space-y-8"
+                  >
+                    <div className="text-center space-y-2">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 mb-2">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <h3 className="text-2xl font-bold text-stone-100">审计完成</h3>
+                      <p className="text-stone-500 text-sm">你已成功将一次失败转化为一块坚固的防护砖。</p>
+                    </div>
+
+                    <div className="bg-stone-800/30 border border-stone-700 p-6 rounded-2xl space-y-4">
+                      <div>
+                        <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">{language === 'zh' ? '不为准则' : 'Not-To-Do Rules'}</p>
+                        <p className="text-lg font-bold text-amber-500">{auditRule}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">历史教训</p>
+                          <p className="text-xs text-stone-400 line-clamp-3">{auditFailure}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">根本原因</p>
+                          <p className="text-xs text-stone-400 line-clamp-3">{auditCause}</p>
+                        </div>
+                      </div>
+                      {(auditSocialContext || auditTenYearDecision) && (
+                        <div className="grid grid-cols-2 gap-4">
+                          {auditSocialContext && (
+                            <div>
+                              <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">社交边界</p>
+                              <p className="text-xs text-stone-400 line-clamp-3">{auditSocialContext}</p>
+                            </div>
+                          )}
+                          {auditTenYearDecision && (
+                            <div>
+                              <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">十年视角</p>
+                              <p className="text-xs text-stone-400 line-clamp-3">{auditTenYearDecision}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button onClick={() => setAuditStep(3)} className="flex-1 py-4 rounded-2xl bg-stone-800/50 text-stone-500 font-bold hover:bg-stone-800 transition-all">修改</button>
+                      <button 
+                        onClick={completeAudit}
+                        className="flex-[2] py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-600 text-stone-950 font-black hover:from-amber-300 hover:to-amber-500 transition-all flex items-center justify-center gap-2 shadow-xl"
+                      >
+                        <Sparkles size={18} />
+                        铸造并加入金字塔
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
           </>
@@ -551,7 +620,7 @@ export default function App() {
               <div className="absolute top-0 left-0 w-full h-1 bg-stone-800">
                 <motion.div 
                   className="h-full bg-amber-500"
-                  animate={{ width: `${((auditStep + 1) / 4) * 100}%` }}
+                  animate={{ width: `${((auditStep + 1) / 5) * 100}%` }}
                 />
               </div>
 
@@ -609,7 +678,7 @@ export default function App() {
                         onClick={() => setAuditStep(2)}
                         className="flex-[2] py-4 rounded-2xl bg-stone-800 text-stone-200 font-bold hover:bg-stone-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        下一步制定准则 <ArrowRight size={18} />
+                        下一步铸造边界 <ArrowRight size={18} />
                       </button>
                     </div>
                   </motion.div>
@@ -671,43 +740,39 @@ export default function App() {
                 {auditStep === 3 && (
                   <motion.div 
                     key="step3"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="space-y-8"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
                   >
-                    <div className="text-center space-y-2">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 mb-2">
-                        <CheckCircle2 size={24} />
-                      </div>
-                      <h3 className="text-2xl font-bold text-stone-100">审计完成</h3>
-                      <p className="text-stone-500 text-sm">你已成功将一次失败转化为一块坚固的防护砖。</p>
+                    <div className="flex items-center gap-3 text-amber-500 font-bold uppercase tracking-widest text-xs">
+                      <Users size={16} /> 第三步：铸造边界
                     </div>
-
-                    <div className="bg-stone-800/30 border border-stone-700 p-6 rounded-2xl space-y-4">
-                      <div>
-                        <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">{language === 'zh' ? '不为准则' : 'Not-To-Do Rules'}</p>
-                        <p className="text-lg font-bold text-amber-500">{auditRule}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">历史教训</p>
-                          <p className="text-xs text-stone-400 line-clamp-3">{auditFailure}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">根本原因</p>
-                          <p className="text-xs text-stone-400 line-clamp-3">{auditCause}</p>
-                        </div>
-                      </div>
+                    <h3 className="text-xl font-semibold text-stone-100">这条准则在哪些社交场景中最为重要？</h3>
+                    <textarea 
+                      placeholder="例如：和投资朋友聚会时、和商业伙伴讨论新机会时、面对高收益诱惑时..."
+                      value={auditSocialContext}
+                      onChange={(e) => setAuditSocialContext(e.target.value)}
+                      className="w-full bg-stone-800/50 border border-stone-700 rounded-2xl px-5 py-4 text-white placeholder-stone-600 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none transition-all h-32 resize-none"
+                    />
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-stone-100">从十年后的角度，这个决策会带来什么影响？</h3>
+                      <textarea 
+                        placeholder="例如：十年后，我会感谢自己今天的克制，避免了重大损失..."
+                        value={auditTenYearDecision}
+                        onChange={(e) => setAuditTenYearDecision(e.target.value)}
+                        className="w-full bg-stone-800/50 border border-stone-700 rounded-2xl px-5 py-4 text-white placeholder-stone-600 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none transition-all h-32 resize-none"
+                      />
                     </div>
 
                     <div className="flex gap-3">
-                      <button onClick={() => setAuditStep(2)} className="flex-1 py-4 rounded-2xl bg-stone-800/50 text-stone-500 font-bold hover:bg-stone-800 transition-all">修改</button>
+                      <button onClick={() => setAuditStep(2)} className="flex-1 py-4 rounded-2xl bg-stone-800/50 text-stone-500 font-bold hover:bg-stone-800 transition-all">返回</button>
                       <button 
-                        onClick={completeAudit}
-                        className="flex-[2] py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-600 text-stone-950 font-black hover:from-amber-300 hover:to-amber-500 transition-all flex items-center justify-center gap-2 shadow-xl"
+                        onClick={() => setAuditStep(4)}
+                        className="flex-[2] py-4 rounded-2xl bg-stone-800 text-stone-200 font-bold hover:bg-stone-700 transition-all flex items-center justify-center gap-2"
                       >
-                        <Sparkles size={18} />
-                        铸造并加入金字塔
+                        预览审计结果 <ArrowRight size={18} />
                       </button>
                     </div>
                   </motion.div>
