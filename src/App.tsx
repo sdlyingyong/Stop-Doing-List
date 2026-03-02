@@ -41,6 +41,24 @@ const INSIGHTS = [
   { text: "我们不需要非常聪明，我们只需要比别人少犯一点点错误。", author: "Charlie Munger" },
 ];
 
+const INSIGHTS_EN = [
+  { text: "Not doing the wrong things is more important than doing the right things.", author: "段永平" },
+  { text: "Stop Doing List is more important than To Do List.", author: "段永平" },
+  { text: "Correct mistakes immediately, no matter the cost, it's always the smallest cost.", author: "段永平" },
+  { text: "Pain + Reflection = Progress.", author: "Ray Dalio" },
+  { text: "If you don't fail, you're not pushing your limits.", author: "Ray Dalio" },
+  { text: "All I want to know is where I'm going to die, so I'll never go there.", author: "Charlie Munger" },
+  { text: "Invert, always invert.", author: "Charlie Munger" },
+  { text: "By consistently avoiding stupidity, rather than trying to be very smart, you can gain enormous long-term advantages.", author: "Charlie Munger" },
+  { text: "If I know where I'm going to die, I'll never go there in my life.", author: "Charlie Munger" },
+  { text: "It's easier to avoid stupidity than to pursue brilliance.", author: "Charlie Munger" },
+  { text: "Discipline is not being tempted, doing the right thing.", author: "段永平" },
+  { text: "If you can't feel fear when others are greedy, you're not suited for investing.", author: "Charlie Munger" },
+  { text: "If you don't think you were a fool a year ago, you haven't learned anything this year.", author: "Ray Dalio" },
+  { text: "What we call 'fast' is often the accumulation of 'slow'.", author: "段永平" },
+  { text: "We don't need to be brilliant, we just need to make a few fewer mistakes than others.", author: "Charlie Munger" },
+];
+
 interface NotToDoItem {
   id: string;
   text: string;
@@ -54,12 +72,14 @@ type View = 'pyramid' | 'audit';
 export default function App() {
   const [items, setItems] = useState<NotToDoItem[]>([]);
   const [currentView, setCurrentView] = useState<View>('pyramid');
+  const [language, setLanguage] = useState<'zh' | 'en'>('zh');
   const [randomQuote, setRandomQuote] = useState(INSIGHTS[0]);
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * INSIGHTS.length);
-    setRandomQuote(INSIGHTS[randomIndex]);
-  }, []);
+    const quotes = language === 'zh' ? INSIGHTS : INSIGHTS_EN;
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    setRandomQuote(quotes[randomIndex]);
+  }, [language]);
   
   // Pyramid State
   const [inputText, setInputText] = useState('');
@@ -207,16 +227,16 @@ export default function App() {
   };
 
   const exportMarkdown = () => {
-    let md = `# 不为清单金字塔 (Not-To-Do List)\n\n`;
-    md += `> 导出时间: ${new Date().toLocaleString()}\n\n`;
+    let md = language === 'zh' ? `# 不为清单金字塔 (Not-To-Do List)\n\n` : `# Not-To-Do List Pyramid\n\n`;
+    md += language === 'zh' ? `> 导出时间: ${new Date().toLocaleString()}\n\n` : `> Export time: ${new Date().toLocaleString()}\n\n`;
     
     items.forEach((item, index) => {
       const category = CATEGORIES.find(c => c.id === item.category)?.label || '其他';
       md += `## ${index + 1}. ${item.text}\n`;
-      md += `- **分类**: ${category}\n`;
-      md += `- **建立时间**: ${new Date(item.timestamp).toLocaleDateString()}\n`;
+      md += language === 'zh' ? `- **分类**: ${category}\n` : `- **Category**: ${category}\n`;
+      md += language === 'zh' ? `- **建立时间**: ${new Date(item.timestamp).toLocaleDateString()}\n` : `- **Created**: ${new Date(item.timestamp).toLocaleDateString()}\n`;
       if (item.reflection) {
-        md += `- **前车之鉴**:\n\n> ${item.reflection.replace(/\n/g, '\n> ')}\n\n`;
+        md += language === 'zh' ? `- **前车之鉴**:\n\n> ${item.reflection.replace(/\n/g, '\n> ')}\n\n` : `- **Reflection**:\n\n> ${item.reflection.replace(/\n/g, '\n> ')}\n\n`;
       }
       md += `---\n\n`;
     });
@@ -254,7 +274,7 @@ export default function App() {
           )}
         >
           <LayoutGrid size={16} />
-          金字塔
+          {language === 'zh' ? '金字塔' : 'Pyramid'}
         </button>
         <button 
           onClick={() => setCurrentView('audit')}
@@ -264,7 +284,13 @@ export default function App() {
           )}
         >
           <History size={16} />
-          黑洞审计
+          {language === 'zh' ? '黑洞审计' : 'Black Hole Audit'}
+        </button>
+        <button 
+          onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all text-stone-500 hover:text-stone-300"
+        >
+          {language === 'zh' ? 'EN' : '中'}
         </button>
       </nav>
 
@@ -361,7 +387,7 @@ export default function App() {
                             {item.reflection && (
                               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-stone-950 border border-stone-800 p-3 rounded-lg shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 text-[10px] text-stone-400 leading-relaxed">
                                 <div className="flex items-center gap-1 text-amber-500 font-bold mb-1.5 uppercase tracking-tighter">
-                                  <Zap size={10} /> 前车之鉴 (痛点复盘)
+                                  <Zap size={10} /> {language === 'zh' ? '前车之鉴 (痛点复盘)' : 'Reflection (Pain Points)'}
                                 </div>
                                 <div className="italic border-l border-amber-500/30 pl-2 whitespace-pre-line">
                                   {item.reflection}
@@ -441,7 +467,7 @@ export default function App() {
 
                     <div className="space-y-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] text-stone-500 font-bold uppercase tracking-widest px-1">不为准则</label>
+                        <label className="text-[10px] text-stone-500 font-bold uppercase tracking-widest px-1">{language === 'zh' ? '不为准则' : 'Not-To-Do Rule'}</label>
                         <input
                           autoFocus
                           type="text"
@@ -454,7 +480,7 @@ export default function App() {
 
                       <div className="space-y-1">
                         <label className="text-[10px] text-stone-500 font-bold uppercase tracking-widest px-1 flex items-center gap-1">
-                          <Zap size={10} className="text-amber-500" /> 前车之鉴 (我曾遇到过什么？)
+                          <Zap size={10} className="text-amber-500" /> {language === 'zh' ? '前车之鉴 (我曾遇到过什么？)' : 'Reflection (What did I experience?)'}
                         </label>
                         <textarea
                           placeholder="描述一次让你后悔的经历及后果..."
@@ -471,7 +497,7 @@ export default function App() {
                       className="w-full py-4 rounded-2xl bg-amber-500 text-stone-950 font-black hover:bg-amber-400 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] mt-2"
                     >
                       <Sparkles size={18} />
-                      {editingItem ? '保存修改' : '确认不为'}
+                      {editingItem ? (language === 'zh' ? '保存修改' : 'Save Changes') : (language === 'zh' ? '确认不为' : 'Confirm Not-To-Do')}
                     </button>
                   </motion.div>
                 ) : (
@@ -596,7 +622,7 @@ export default function App() {
                     />
                     
                     <div className="space-y-3">
-                      <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest px-1">选择分类</p>
+                      <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest px-1">{language === 'zh' ? '选择分类' : 'Select Category'}</p>
                       <div className="flex flex-wrap gap-2">
                         {CATEGORIES.map((cat) => (
                           <button
@@ -646,7 +672,7 @@ export default function App() {
 
                     <div className="bg-stone-800/30 border border-stone-700 p-6 rounded-2xl space-y-4">
                       <div>
-                        <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">不为准则</p>
+                        <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">{language === 'zh' ? '不为准则' : 'Not-To-Do Rules'}</p>
                         <p className="text-lg font-bold text-amber-500">{auditRule}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -704,7 +730,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                   <Settings className="text-amber-500" size={20} />
-                  数据管理
+                  {language === 'zh' ? '数据管理' : 'Data Management'}
                 </h3>
                 <button onClick={() => setShowDataModal(false)} className="text-stone-500 hover:text-stone-300">
                   <Plus size={24} className="rotate-45" />
@@ -747,7 +773,7 @@ export default function App() {
         <button 
           onClick={() => setShowDataModal(true)}
           className="p-3 rounded-full bg-stone-900/50 border border-stone-800 text-stone-600 hover:text-amber-500 hover:border-amber-500/30 transition-all shadow-xl backdrop-blur-sm"
-          title="数据管理"
+          title={language === 'zh' ? '数据管理' : 'Data Management'}
         >
           <Settings size={18} />
         </button>
