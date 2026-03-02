@@ -334,7 +334,7 @@ export default function App() {
                       key={`row-${rowIndex}`}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="flex justify-center gap-3"
+                      className="flex justify-center gap-3 items-stretch"
                     >
                       {row.map((item) => {
                         const category = CATEGORIES.find(c => c.id === item.category) || CATEGORIES[4];
@@ -349,11 +349,11 @@ export default function App() {
                             className="group relative"
                           >
                             <div className={cn(
-                              "w-28 h-14 sm:w-36 sm:h-18 bg-stone-900 border-b-2 border-r-2 rounded-lg flex flex-col items-center justify-center p-2 text-center shadow-2xl cursor-default overflow-hidden transition-all group-hover:brightness-125",
+                              "w-28 min-h-14 sm:w-36 sm:min-h-18 bg-stone-900 border-b-2 border-r-2 rounded-lg flex flex-col items-center justify-center p-2 text-center shadow-2xl cursor-default overflow-visible transition-all group-hover:brightness-125",
                               category.color
                             )}>
                               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-                              <span className="text-[10px] sm:text-xs font-medium text-stone-300 line-clamp-2 leading-tight tracking-wide z-10">
+                              <span className="text-[10px] sm:text-xs font-medium text-stone-300 leading-tight tracking-wide z-10 break-words max-w-full">
                                 {item.text}
                               </span>
                               {item.reflection && (
