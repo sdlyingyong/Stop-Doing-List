@@ -4,7 +4,7 @@ import {
   Plus, ShieldAlert, Trash2, Sparkles, Target, Clock, Zap, 
   Heart, Users, Briefcase, Coins, HelpCircle, History, LayoutGrid, 
   ArrowRight, CheckCircle2, AlertCircle, FileText, Settings,
-  Upload
+  Upload, Edit3
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -34,6 +34,11 @@ const INSIGHTS = [
   { text: "通过努力保持不愚蠢，而不是努力变得非常聪明，能获得巨大的长期优势。", author: "Charlie Munger" },
   { text: "如果我知道我会死在哪里，我一辈子都不会去那个地方。", author: "Charlie Munger" },
   { text: "避开愚蠢比追求卓越更容易，也更有效。", author: "Charlie Munger" },
+  { text: "本分，就是不被诱惑，做正确的事情。", author: "段永平" },
+  { text: "如果你不能在别人贪婪时感到恐惧，你就不适合投资。", author: "Charlie Munger" },
+  { text: "如果你不觉得一年前的自己是个蠢货，那说明你这一年没学到什么东西。", author: "Ray Dalio" },
+  { text: "所谓的‘快’，往往就是‘慢’的积累。", author: "段永平" },
+  { text: "我们不需要非常聪明，我们只需要比别人少犯一点点错误。", author: "Charlie Munger" },
 ];
 
 interface NotToDoItem {
@@ -61,6 +66,7 @@ export default function App() {
   const [reflection, setReflection] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('work');
   const [isAdding, setIsAdding] = useState(false);
+  const [editingItem, setEditingItem] = useState<NotToDoItem | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
 
@@ -101,10 +107,29 @@ export default function App() {
 
   const handlePyramidAdd = () => {
     if (!inputText.trim()) return;
-    addItem(inputText, selectedCategory, reflection);
+    
+    if (editingItem) {
+      setItems(items.map(item => 
+        item.id === editingItem.id 
+          ? { ...item, text: inputText.trim(), category: selectedCategory, reflection: reflection.trim() }
+          : item
+      ));
+      setEditingItem(null);
+    } else {
+      addItem(inputText, selectedCategory, reflection);
+    }
+    
     setInputText('');
     setReflection('');
     setIsAdding(false);
+  };
+
+  const startEditing = (item: NotToDoItem) => {
+    setEditingItem(item);
+    setInputText(item.text);
+    setReflection(item.reflection);
+    setSelectedCategory(item.category);
+    setIsAdding(true);
   };
 
   const removeItem = (id: string) => {
@@ -317,12 +342,20 @@ export default function App() {
                                   <Clock size={10} className="text-amber-500" />
                                 </div>
                               )}
-                              <button 
-                                onClick={() => removeItem(item.id)}
-                                className="absolute -top-1 -right-1 bg-stone-800 text-stone-500 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400 hover:bg-stone-700 z-20"
-                              >
-                                <Trash2 size={12} />
-                              </button>
+                              <div className="absolute -top-1 -right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                <button 
+                                  onClick={() => startEditing(item)}
+                                  className="bg-stone-800 text-stone-500 p-1.5 rounded-full hover:text-amber-400 hover:bg-stone-700"
+                                >
+                                  <Edit3 size={12} />
+                                </button>
+                                <button 
+                                  onClick={() => removeItem(item.id)}
+                                  className="bg-stone-800 text-stone-500 p-1.5 rounded-full hover:text-red-400 hover:bg-stone-700"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
                             </div>
 
                             {item.reflection && (
@@ -381,9 +414,9 @@ export default function App() {
                     <div className="flex items-center justify-between px-1">
                       <div className="flex items-center gap-2 text-amber-500 text-xs font-bold uppercase tracking-widest">
                         <ShieldAlert size={14} />
-                        铸造边界
+                        {editingItem ? '修改边界' : '铸造边界'}
                       </div>
-                      <button onClick={() => setIsAdding(false)} className="text-stone-500 hover:text-stone-300">
+                      <button onClick={() => { setIsAdding(false); setEditingItem(null); setInputText(''); setReflection(''); }} className="text-stone-500 hover:text-stone-300">
                         <Plus size={18} className="rotate-45" />
                       </button>
                     </div>
@@ -438,7 +471,7 @@ export default function App() {
                       className="w-full py-4 rounded-2xl bg-amber-500 text-stone-950 font-black hover:bg-amber-400 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] mt-2"
                     >
                       <Sparkles size={18} />
-                      确认不为
+                      {editingItem ? '保存修改' : '确认不为'}
                     </button>
                   </motion.div>
                 ) : (
