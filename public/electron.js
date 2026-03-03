@@ -1,9 +1,9 @@
-import { app, BrowserWindow, Menu, ipcMain, dialog, shell } from 'electron';
-import { fileURLToPath } from 'url';
-import path from 'path';
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// 在CommonJS中获取当前文件路径
+const filename = __filename;
+const dirname = __dirname;
 
 // 保持对窗口对象的全局引用，如果不这样做，当JavaScript对象被垃圾回收时，窗口将自动关闭
 let mainWindow;
@@ -19,9 +19,9 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(dirname, 'preload.js')
     },
-    // icon: path.join(__dirname, 'assets/icon.png'), // 应用图标 - 暂时注释
+    // icon: path.join(dirname, 'assets/icon.png'), // 应用图标 - 暂时注释
     show: false, // 先不显示，等ready-to-show事件
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default'
   });
@@ -31,7 +31,7 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(dirname, '../dist/index.html'));
   }
 
   // 当窗口准备好显示时显示窗口
