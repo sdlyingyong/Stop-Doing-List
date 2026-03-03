@@ -553,7 +553,7 @@ export default function App() {
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter mb-3 text-transparent bg-clip-text bg-gradient-to-b from-stone-100 to-stone-400 px-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tighter mb-3 text-transparent bg-clip-text bg-gradient-to-b from-stone-100 to-stone-400 px-4">
               {currentView === 'pyramid' 
                 ? (lang === 'zh' ? '不为清单 · 金字塔' : 'Not-To-Do · Pyramid')
                 : (lang === 'zh' ? '十年决策 · 实验室' : '10-Year Decision Lab')
@@ -586,8 +586,8 @@ export default function App() {
         {currentView === 'pyramid' ? (
           <>
             {/* Pyramid Container */}
-            <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible px-4" data-testid="pyramid-view">
-              <div className="flex flex-col items-center gap-3 max-w-full">
+            <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible px-2 sm:px-4" data-testid="pyramid-view">
+              <div className="flex flex-col items-center gap-3 max-w-7xl">
                 <AnimatePresence mode="popLayout">
                   {rows.map((row, rowIndex) => (
                     <motion.div 
