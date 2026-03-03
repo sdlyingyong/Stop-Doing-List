@@ -532,6 +532,7 @@ export default function App() {
                     "flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex-1 min-w-0",
                     currentView === 'pyramid' ? "bg-amber-500 text-stone-950 shadow-lg" : "text-stone-500 hover:text-stone-300"
                   )}
+                  data-testid="nav-button"
                 >
                   <LayoutGrid size={16} className="sm:size-18 flex-shrink-0" />
                   <span className="hidden sm:inline">{lang === 'zh' ? '金字塔' : 'Pyramid'}</span>
@@ -543,6 +544,7 @@ export default function App() {
                     "flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex-1 min-w-0",
                     currentView === 'decisions' ? "bg-amber-500 text-stone-950 shadow-lg" : "text-stone-500 hover:text-stone-300"
                   )}
+                  data-testid="nav-button"
                 >
                   <Brain size={16} className="sm:size-18 flex-shrink-0" />
                   <span className="hidden sm:inline">{lang === 'zh' ? '决策实验室' : 'Decision Lab'}</span>
@@ -584,7 +586,7 @@ export default function App() {
         {currentView === 'pyramid' ? (
           <>
             {/* Pyramid Container */}
-            <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible px-4">
+            <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible px-4" data-testid="pyramid-view">
               <div className="flex flex-col items-center gap-3 max-w-full">
                 <AnimatePresence mode="popLayout">
                   {rows.map((row, rowIndex) => (
@@ -821,7 +823,7 @@ export default function App() {
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="w-full max-w-2xl px-4 pb-40"
+            className="w-full max-w-2xl px-4 pb-40" data-testid="decisions-view"
           >
             <div className="grid gap-6">
               {decisions.map((decision) => (
@@ -1082,7 +1084,7 @@ export default function App() {
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="w-full max-w-2xl px-4 pb-24 relative"
+            className="w-full max-w-2xl px-4 pb-24 relative" data-testid="audit-view"
           >
             <button 
               onClick={() => { setAuditStep(0); setCurrentView('pyramid'); }}
