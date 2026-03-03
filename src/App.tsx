@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import ProgressBar from './components/ProgressBar';
 
 // 检测是否在Electron环境中运行
 const isElectron = typeof window !== 'undefined' && (window as any).electronAPI !== undefined;
@@ -75,6 +76,7 @@ export default function App() {
   const [decisions, setDecisions] = useState<DecisionItem[]>([]);
   const [currentView, setCurrentView] = useState<View>('pyramid');
   const [lang, setLang] = useState<'zh' | 'en'>('zh');
+  const [isDarkMode, setIsDarkMode] = useState(true); // 默认黑暗模式
   const [randomQuote, setRandomQuote] = useState(INSIGHTS[0]);
 
   useEffect(() => {
@@ -767,6 +769,40 @@ export default function App() {
 
         {currentView === 'pyramid' ? (
           <>
+            {/* Progress Bar Section */}
+            <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-8">
+              <div className="bg-stone-900/30 rounded-2xl p-6 border border-stone-800/50 backdrop-blur-sm">
+                <h3 className="text-lg font-bold text-stone-100 mb-4">{lang === 'zh' ? '完成进度' : 'Progress'}</h3>
+                <div className="space-y-4">
+                  <ProgressBar 
+                    current={items.length} 
+                    total={21} 
+                    label={lang === 'zh' ? '金字塔项目' : 'Pyramid Items'}
+                  />
+                  <div className="grid grid-cols-3 gap-4">
+                    <ProgressBar 
+                      current={items.filter(i => i.category === 'work').length} 
+                      total={7} 
+                      label={lang === 'zh' ? '工作' : 'Work'}
+                      showPercentage={false}
+                    />
+                    <ProgressBar 
+                      current={items.filter(i => i.category === 'life').length} 
+                      total={7} 
+                      label={lang === 'zh' ? '生活' : 'Life'}
+                      showPercentage={false}
+                    />
+                    <ProgressBar 
+                      current={items.filter(i => i.category === 'growth').length} 
+                      total={7} 
+                      label={lang === 'zh' ? '成长' : 'Growth'}
+                      showPercentage={false}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {/* Pyramid Container */}
             <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible px-2 sm:px-4" data-testid="pyramid-view">
               <div className="flex flex-col items-center gap-3 max-w-7xl">
@@ -1528,6 +1564,25 @@ export default function App() {
                     >
                       English
                     </button>
+                  </div>
+                  
+                  <div className="p-4 bg-stone-800/50 rounded-2xl border border-stone-700 mt-4">
+                    <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-4">{lang === 'zh' ? '主题设置' : 'Theme Settings'}</p>
+                    <div className="flex bg-stone-900 p-1 rounded-xl border border-stone-700">
+                      <button 
+                        onClick={() => {
+                          setIsDarkMode(!isDarkMode);
+                          localStorage.setItem('darkMode', (!isDarkMode).toString());
+                          document.documentElement.classList.toggle('dark');
+                        }}
+                        className={cn(
+                          "flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                          isDarkMode ? "bg-amber-500 text-stone-950 shadow-lg" : "text-stone-500 hover:text-stone-300"
+                        )}
+                      >
+                        {isDarkMode ? '🌙' : '🌙'} {isDarkMode ? (lang === 'zh' ? '浅色' : 'Light') : (lang === 'zh' ? '深色' : 'Dark')}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

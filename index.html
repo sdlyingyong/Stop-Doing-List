@@ -16,6 +16,17 @@
     <!-- Theme Color -->
     <meta name="theme-color" content="#18181b" />
     
+    <!-- Dark Mode Script -->
+    <script>
+      // 默认设置黑暗模式
+      (function() {
+        const isDarkMode = localStorage.getItem('darkMode') !== 'false';
+        if (isDarkMode) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://your-app-url.com" />
