@@ -281,6 +281,82 @@ function testTitleAndIcon() {
   return true;
 }
 
+// 测试7: 导出功能测试
+function testExportFunction() {
+  console.log('📤 测试7: 导出功能测试');
+  
+  return new Promise((resolve) => {
+    // 检查导出按钮是否存在
+    const exportButton = document.querySelector('[data-testid="export-button"]');
+    if (!exportButton) {
+      console.error('❌ 导出按钮不存在');
+      resolve(false);
+      return;
+    }
+    console.log('✅ 导出按钮存在');
+    
+    // 检查IndexedDB是否可以打开
+    const request = indexedDB.open('NotToDoDB', 1);
+    request.onerror = () => {
+      console.error('❌ 无法打开IndexedDB');
+      resolve(false);
+    };
+    
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      
+      // 检查存储对象是否存在
+      if (!db.objectStoreNames.contains('pyramid') || !db.objectStoreNames.contains('decisions')) {
+        console.error('❌ IndexedDB存储对象不存在');
+        resolve(false);
+        return;
+      }
+      console.log('✅ IndexedDB存储对象存在');
+      
+      // 检查是否能读取数据
+      const itemsTransaction = db.transaction(['pyramid'], 'readonly');
+      const itemsStore = itemsTransaction.objectStore('pyramid');
+      const itemsRequest = itemsStore.getAll();
+      
+      const decisionsTransaction = db.transaction(['decisions'], 'readonly');
+      const decisionsStore = decisionsTransaction.objectStore('decisions');
+      const decisionsRequest = decisionsStore.getAll();
+      
+      Promise.all([itemsRequest, decisionsRequest]).then(() => {
+        console.log('✅ 数据读取成功');
+        console.log(`📊 金字塔数据: ${itemsRequest.result.length} 条`);
+        console.log(`📊 决策数据: ${decisionsRequest.result.length} 条`);
+        
+        // 检查数据是否可以序列化
+        try {
+          const data = {
+            items: itemsRequest.result || [],
+            decisions: decisionsRequest.result || [],
+            exportDate: new Date().toISOString()
+          };
+          
+          const jsonString = JSON.stringify(data, null, 2);
+          console.log('✅ 数据序列化成功');
+          console.log(`📄 JSON大小: ${jsonString.length} 字符`);
+          
+          // 检查Blob创建
+          const blob = new Blob([jsonString], {type: 'application/json'});
+          console.log('✅ Blob创建成功');
+          console.log(`📦 Blob大小: ${blob.size} 字节`);
+          
+          resolve(true);
+        } catch (error) {
+          console.error('❌ 数据序列化失败:', error);
+          resolve(false);
+        }
+      }).catch(error => {
+        console.error('❌ 数据读取失败:', error);
+        resolve(false);
+      });
+    };
+  });
+}
+
 // 运行所有测试
 async function runAllTests() {
   console.log('🚀 开始运行所有测试用例...');
@@ -291,7 +367,8 @@ async function runAllTests() {
     deleteFunction: await testDeleteFunction(),
     editFunction: await testEditFunction(),
     responsiveDesign: testResponsiveDesign(),
-    titleAndIcon: testTitleAndIcon()
+    titleAndIcon: testTitleAndIcon(),
+    exportFunction: await testExportFunction()
   };
   
   console.log('📊 测试结果汇总:');

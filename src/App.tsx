@@ -408,7 +408,35 @@ export default function App() {
       const decisionsStore = decisionsTransaction.objectStore('decisions');
       const decisionsRequest = decisionsStore.getAll();
       
-      Promise.all([itemsRequest, decisionsRequest]).then(() => {
+      // 监听两个请求的完成
+      let itemsComplete = false;
+      let decisionsComplete = false;
+      
+      itemsRequest.onsuccess = () => {
+        itemsComplete = true;
+        if (decisionsComplete) {
+          performExport();
+        }
+      };
+      
+      decisionsRequest.onsuccess = () => {
+        decisionsComplete = true;
+        if (itemsComplete) {
+          performExport();
+        }
+      };
+      
+      itemsRequest.onerror = () => {
+        console.error('金字塔数据读取失败');
+        alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
+      };
+      
+      decisionsRequest.onerror = () => {
+        console.error('决策数据读取失败');
+        alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
+      };
+      
+      function performExport() {
         const data = {
           items: itemsRequest.result || [],
           decisions: decisionsRequest.result || [],
@@ -431,10 +459,7 @@ export default function App() {
           console.error('导出失败:', error);
           alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
         }
-      }).catch(error => {
-        console.error('导出过程中出错:', error);
-        alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
-      });
+      }
     };
   };
 
@@ -1372,6 +1397,7 @@ export default function App() {
                     <button 
                       onClick={exportData}
                       className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-stone-800 hover:bg-stone-700 transition-colors border border-stone-700 group"
+                      data-testid="export-button"
                     >
                       <FileText className="text-amber-500 group-hover:scale-110 transition-transform" />
                       <span className="text-[10px] font-bold uppercase tracking-wider">{lang === 'zh' ? '导出数据' : 'Export Data'}</span>
