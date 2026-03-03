@@ -437,18 +437,107 @@ export default function App() {
       };
       
       function performExport() {
-        const data = {
-          items: itemsRequest.result || [],
-          decisions: decisionsRequest.result || [],
-          exportDate: new Date().toISOString()
-        };
+        const items = itemsRequest.result || [];
+        const decisions = decisionsRequest.result || [];
+        const exportDate = new Date().toISOString();
         
         try {
-          const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+          // 生成Markdown内容
+          let markdownContent = `# ${lang === 'zh' ? '不为清单' : 'Not-To-Do List'}\n\n`;
+          markdownContent += `> ${lang === 'zh' ? '导出时间' : 'Export Date'}: ${new Date().toLocaleString()}\n\n`;
+          
+          // 添加金字塔部分
+          if (items.length > 0) {
+            markdownContent += `## ${lang === 'zh' ? '金字塔' : 'Pyramid'}\n\n`;
+            
+            // 按类别分组
+            const workItems = items.filter(item => item.category === 'work');
+            const lifeItems = items.filter(item => item.category === 'life');
+            const growthItems = items.filter(item => item.category === 'growth');
+            
+            if (workItems.length > 0) {
+              markdownContent += `### ${lang === 'zh' ? '工作' : 'Work'}\n\n`;
+              workItems.forEach(item => {
+                markdownContent += `- **${item.text}**\n`;
+                if (item.reflection) {
+                  markdownContent += `  - ${lang === 'zh' ? '反思' : 'Reflection'}: ${item.reflection}\n`;
+                }
+                if (item.logs && item.logs.length > 0) {
+                  markdownContent += `  - ${lang === 'zh' ? '日志' : 'Logs'}:\n`;
+                  item.logs.forEach(log => {
+                    markdownContent += `    - ${lang === 'zh' ? '场景' : 'Scenario'}: ${log.scenario}\n`;
+                    markdownContent += `      - ${lang === 'zh' ? '选择' : 'Choice'}: ${log.choice}\n`;
+                    if (log.outcome) {
+                      markdownContent += `      - ${lang === 'zh' ? '结果' : 'Outcome'}: ${log.outcome}\n`;
+                    }
+                  });
+                }
+                markdownContent += '\n';
+              });
+            }
+            
+            if (lifeItems.length > 0) {
+              markdownContent += `### ${lang === 'zh' ? '生活' : 'Life'}\n\n`;
+              lifeItems.forEach(item => {
+                markdownContent += `- **${item.text}**\n`;
+                if (item.reflection) {
+                  markdownContent += `  - ${lang === 'zh' ? '反思' : 'Reflection'}: ${item.reflection}\n`;
+                }
+                if (item.logs && item.logs.length > 0) {
+                  markdownContent += `  - ${lang === 'zh' ? '日志' : 'Logs'}:\n`;
+                  item.logs.forEach(log => {
+                    markdownContent += `    - ${lang === 'zh' ? '场景' : 'Scenario'}: ${log.scenario}\n`;
+                    markdownContent += `      - ${lang === 'zh' ? '选择' : 'Choice'}: ${log.choice}\n`;
+                    if (log.outcome) {
+                      markdownContent += `      - ${lang === 'zh' ? '结果' : 'Outcome'}: ${log.outcome}\n`;
+                    }
+                  });
+                }
+                markdownContent += '\n';
+              });
+            }
+            
+            if (growthItems.length > 0) {
+              markdownContent += `### ${lang === 'zh' ? '成长' : 'Growth'}\n\n`;
+              growthItems.forEach(item => {
+                markdownContent += `- **${item.text}**\n`;
+                if (item.reflection) {
+                  markdownContent += `  - ${lang === 'zh' ? '反思' : 'Reflection'}: ${item.reflection}\n`;
+                }
+                if (item.logs && item.logs.length > 0) {
+                  markdownContent += `  - ${lang === 'zh' ? '日志' : 'Logs'}:\n`;
+                  item.logs.forEach(log => {
+                    markdownContent += `    - ${lang === 'zh' ? '场景' : 'Scenario'}: ${log.scenario}\n`;
+                    markdownContent += `      - ${lang === 'zh' ? '选择' : 'Choice'}: ${log.choice}\n`;
+                    if (log.outcome) {
+                      markdownContent += `      - ${lang === 'zh' ? '结果' : 'Outcome'}: ${log.outcome}\n`;
+                    }
+                  });
+                }
+                markdownContent += '\n';
+              });
+            }
+          }
+          
+          // 添加决策部分
+          if (decisions.length > 0) {
+            markdownContent += `## ${lang === 'zh' ? '十年决策' : '10-Year Decisions'}\n\n`;
+            decisions.forEach(decision => {
+              markdownContent += `### ${decision.content}\n\n`;
+              markdownContent += `- **${lang === 'zh' ? '时间' : 'Time'}**: ${new Date(decision.timestamp).toLocaleString()}\n`;
+              if (decision.tenYearView) {
+                markdownContent += `- **${lang === 'zh' ? '十年视角' : '10-Year View'}**: ${decision.tenYearView}\n`;
+              }
+              markdownContent += '\n';
+            });
+          }
+          
+          // 创建Markdown文件
+          const blob = new Blob([markdownContent], {type: 'text/markdown'});
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `notodo-backup-${new Date().toISOString().split('T')[0]}.json`;
+          a.download = `notodo-backup-${new Date().toISOString().split('T')[0]}.md`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
