@@ -280,6 +280,16 @@ export default function App() {
   };
 
   const removeItem = (id: string) => {
+    // 从IndexedDB中删除数据
+    const request = indexedDB.open('NotToDoDB', 1);
+    request.onsuccess = function(event: any) {
+      const db = event.target.result;
+      const transaction = db.transaction(['pyramid'], 'readwrite');
+      const store = transaction.objectStore('pyramid');
+      store.delete(id);
+    };
+    
+    // 更新React状态
     setItems(items.filter(item => item.id !== id));
   };
 
@@ -847,7 +857,19 @@ export default function App() {
                       <Edit3 size={16} />
                     </button>
                     <button 
-                      onClick={() => setDecisions(decisions.filter(d => d.id !== decision.id))}
+                      onClick={() => {
+                        // 从IndexedDB中删除数据
+                        const request = indexedDB.open('NotToDoDB', 1);
+                        request.onsuccess = function(event: any) {
+                          const db = event.target.result;
+                          const transaction = db.transaction(['decisions'], 'readwrite');
+                          const store = transaction.objectStore('decisions');
+                          store.delete(decision.id);
+                        };
+                        
+                        // 更新React状态
+                        setDecisions(decisions.filter(d => d.id !== decision.id));
+                      }}
                       className="text-stone-700 hover:text-red-400 transition-colors p-1"
                     >
                       <Trash2 size={16} />
