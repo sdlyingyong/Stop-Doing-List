@@ -390,6 +390,11 @@ export default function App() {
   const exportData = () => {
     const request = indexedDB.open('NotToDoDB', 1);
     
+    request.onerror = function() {
+      console.error('无法打开IndexedDB进行导出');
+      alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
+    };
+    
     request.onsuccess = function(event: any) {
       const db = event.target.result;
       
@@ -410,13 +415,25 @@ export default function App() {
           exportDate: new Date().toISOString()
         };
         
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `notodo-backup-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        try {
+          const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `notodo-backup-${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          console.log('导出成功');
+        } catch (error) {
+          console.error('导出失败:', error);
+          alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
+        }
+      }).catch(error => {
+        console.error('导出过程中出错:', error);
+        alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
       });
     };
   };
