@@ -19,7 +19,8 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(dirname, 'preload.js')
+      preload: path.join(dirname, 'preload.js'),
+      sandbox: false // 禁用沙盒以解决文件权限问题
     },
     // icon: path.join(dirname, 'assets/icon.png'), // 应用图标 - 暂时注释
     show: false, // 先不显示，等ready-to-show事件
