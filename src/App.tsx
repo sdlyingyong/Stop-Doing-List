@@ -96,6 +96,7 @@ export default function App() {
   const [isAddingDecision, setIsAddingDecision] = useState(false);
   const [decisionContent, setDecisionContent] = useState('');
   const [tenYearView, setTenYearView] = useState('');
+  const [editingDecision, setEditingDecision] = useState<DecisionItem | null>(null);
 
   const [showInfo, setShowInfo] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
@@ -158,6 +159,14 @@ export default function App() {
     setDecisions([...decisions, newDecision]);
   };
 
+  const updateDecision = (id: string, content: string, view: string) => {
+    setDecisions(decisions.map(d => 
+      d.id === id 
+        ? { ...d, content: content.trim(), tenYearView: view.trim() }
+        : d
+    ));
+  };
+
   const handlePyramidAdd = () => {
     if (!inputText.trim()) return;
     
@@ -179,7 +188,14 @@ export default function App() {
 
   const handleDecisionAdd = () => {
     if (!decisionContent.trim()) return;
-    addDecision(decisionContent, tenYearView);
+    
+    if (editingDecision) {
+      updateDecision(editingDecision.id, decisionContent, tenYearView);
+      setEditingDecision(null);
+    } else {
+      addDecision(decisionContent, tenYearView);
+    }
+    
     setDecisionContent('');
     setTenYearView('');
     setIsAddingDecision(false);
@@ -664,12 +680,25 @@ export default function App() {
                     </p>
                   </div>
 
-                  <button 
-                    onClick={() => setDecisions(decisions.filter(d => d.id !== decision.id))}
-                    className="absolute top-4 right-4 text-stone-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100">
+                    <button 
+                      onClick={() => {
+                        setEditingDecision(decision);
+                        setDecisionContent(decision.content);
+                        setTenYearView(decision.tenYearView);
+                        setIsAddingDecision(true);
+                      }}
+                      className="text-stone-700 hover:text-amber-400 transition-colors"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button 
+                      onClick={() => setDecisions(decisions.filter(d => d.id !== decision.id))}
+                      className="text-stone-700 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </motion.div>
               ))}
 
@@ -795,9 +824,17 @@ export default function App() {
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-bold flex items-center gap-2">
                         <Brain className="text-amber-500" size={20} />
-                        {lang === 'zh' ? '决策实验室' : 'Decision Lab'}
+                        {editingDecision 
+                          ? (lang === 'zh' ? '编辑决策' : 'Edit Decision')
+                          : (lang === 'zh' ? '决策实验室' : 'Decision Lab')
+                        }
                       </h3>
-                      <button onClick={() => setIsAddingDecision(false)} className="text-stone-500 hover:text-stone-300">
+                      <button onClick={() => {
+                        setIsAddingDecision(false);
+                        setEditingDecision(null);
+                        setDecisionContent('');
+                        setTenYearView('');
+                      }} className="text-stone-500 hover:text-stone-300">
                         <Plus size={24} className="rotate-45" />
                       </button>
                     </div>
@@ -833,7 +870,10 @@ export default function App() {
                       className="w-full py-4 rounded-2xl bg-amber-500 text-stone-950 font-black hover:bg-amber-400 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
                     >
                       <Sparkles size={18} />
-                      {lang === 'zh' ? '存入实验室' : 'Save to Lab'}
+                      {editingDecision 
+                        ? (lang === 'zh' ? '更新决策' : 'Update Decision')
+                        : (lang === 'zh' ? '存入实验室' : 'Save to Lab')
+                      }
                     </button>
                   </motion.div>
                 </div>
