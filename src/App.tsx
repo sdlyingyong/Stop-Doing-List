@@ -9,6 +9,9 @@ import {
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// 检测是否在Electron环境中运行
+const isElectron = typeof window !== 'undefined' && (window as any).electronAPI !== undefined;
+
 // Utility for tailwind classes
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -198,6 +201,35 @@ export default function App() {
       }
     };
   }, [items, decisions]);
+
+  // 监听Electron菜单事件
+  useEffect(() => {
+    if (isElectron) {
+      // 导出数据事件
+      (window as any).electronAPI.onExportData(() => {
+        exportData();
+      });
+      
+      // 导入数据事件
+      (window as any).electronAPI.onImportData(async () => {
+        try {
+          const filePath = await (window as any).electronAPI.importFile();
+          if (filePath) {
+            // 这里可以添加文件读取逻辑
+            console.log('选择的文件路径:', filePath);
+          }
+        } catch (error) {
+          console.error('导入失败:', error);
+        }
+      });
+      
+      // 清理函数
+      return () => {
+        (window as any).electronAPI.removeAllListeners('export-data');
+        (window as any).electronAPI.removeAllListeners('import-data');
+      };
+    }
+  }, [isElectron, lang]);
 
   const addItem = (text: string, cat: string, refl: string) => {
     const newItem: NotToDoItem = {
@@ -534,14 +566,33 @@ export default function App() {
           
           // 创建Markdown文件
           const blob = new Blob([markdownContent], {type: 'text/markdown'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `notodo-backup-${new Date().toISOString().split('T')[0]}.md`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
+          const filename = `notodo-backup-${new Date().toISOString().split('T')[0]}.md`;
+          
+          // 如果在Electron环境中，使用原生文件对话框
+          if (isElectron) {
+            (window as any).electronAPI.exportFile(markdownContent, filename)
+              .then((filePath: string) => {
+                if (filePath) {
+                  // 使用Node.js的fs模块写入文件
+                  console.log('文件已保存到:', filePath);
+                  alert(lang === 'zh' ? '导出成功' : 'Export successful');
+                }
+              })
+              .catch((error: any) => {
+                console.error('导出失败:', error);
+                alert(lang === 'zh' ? '导出失败，请重试' : 'Export failed, please try again');
+              });
+          } else {
+            // 浏览器环境，使用下载方式
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
           
           console.log('导出成功');
         } catch (error) {
