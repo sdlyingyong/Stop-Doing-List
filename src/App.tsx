@@ -514,32 +514,34 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12 relative w-full"
           >
-            <div className="flex justify-center mb-8">
-              <div className="inline-flex p-1 bg-stone-900 border border-stone-800 rounded-2xl shadow-xl">
+            <div className="flex justify-center mb-8 px-4">
+              <div className="inline-flex p-1 bg-stone-900 border border-stone-800 rounded-2xl shadow-xl flex-wrap max-w-full">
                 <button 
                   onClick={() => setCurrentView('pyramid')}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all",
+                    "flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex-1 min-w-0",
                     currentView === 'pyramid' ? "bg-amber-500 text-stone-950 shadow-lg" : "text-stone-500 hover:text-stone-300"
                   )}
                 >
-                  <LayoutGrid size={18} />
-                  {lang === 'zh' ? '金字塔' : 'Pyramid'}
+                  <LayoutGrid size={16} className="sm:size-18 flex-shrink-0" />
+                  <span className="hidden sm:inline">{lang === 'zh' ? '金字塔' : 'Pyramid'}</span>
+                  <span className="sm:hidden">{lang === 'zh' ? '金' : 'P'}</span>
                 </button>
                 <button 
                   onClick={() => setCurrentView('decisions')}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all",
+                    "flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex-1 min-w-0",
                     currentView === 'decisions' ? "bg-amber-500 text-stone-950 shadow-lg" : "text-stone-500 hover:text-stone-300"
                   )}
                 >
-                  <Brain size={18} />
-                  {lang === 'zh' ? '决策实验室' : 'Decision Lab'}
+                  <Brain size={16} className="sm:size-18 flex-shrink-0" />
+                  <span className="hidden sm:inline">{lang === 'zh' ? '决策实验室' : 'Decision Lab'}</span>
+                  <span className="sm:hidden">{lang === 'zh' ? '决策' : 'D'}</span>
                 </button>
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter mb-3 text-transparent bg-clip-text bg-gradient-to-b from-stone-100 to-stone-400">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter mb-3 text-transparent bg-clip-text bg-gradient-to-b from-stone-100 to-stone-400 px-4">
               {currentView === 'pyramid' 
                 ? (lang === 'zh' ? '不为清单 · 金字塔' : 'Not-To-Do · Pyramid')
                 : (lang === 'zh' ? '十年决策 · 实验室' : '10-Year Decision Lab')
@@ -550,7 +552,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="max-w-md mx-auto mt-6 p-4 rounded-2xl bg-stone-900/30 border border-stone-800/50 backdrop-blur-sm relative group cursor-pointer"
+              className="max-w-md mx-auto mt-6 mx-4 p-4 rounded-2xl bg-stone-900/30 border border-stone-800/50 backdrop-blur-sm relative group cursor-pointer"
               onClick={() => {
                 const nextIndex = (INSIGHTS.indexOf(randomQuote) + 1) % INSIGHTS.length;
                 setRandomQuote(INSIGHTS[nextIndex]);
@@ -559,10 +561,10 @@ export default function App() {
               <div className="absolute -top-2 -left-2 text-amber-500/20 group-hover:text-amber-500/40 transition-colors">
                 <Sparkles size={24} />
               </div>
-              <p className="text-stone-400 text-sm italic leading-relaxed mb-2">
+              <p className="text-stone-400 text-sm italic leading-relaxed mb-2 px-2">
                 “{randomQuote.text}”
               </p>
-              <div className="text-[10px] text-stone-600 font-bold uppercase tracking-widest text-right">
+              <div className="text-[10px] text-stone-600 font-bold uppercase tracking-widest text-right px-2">
                 —— {randomQuote.author}
               </div>
             </motion.div>
@@ -572,15 +574,15 @@ export default function App() {
         {currentView === 'pyramid' ? (
           <>
             {/* Pyramid Container */}
-            <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible">
-              <div className="flex flex-col items-center gap-3">
+            <div className="flex-1 w-full flex flex-col items-center justify-center mb-40 overflow-visible px-4">
+              <div className="flex flex-col items-center gap-3 max-w-full">
                 <AnimatePresence mode="popLayout">
                   {rows.map((row, rowIndex) => (
                     <motion.div 
                       key={`row-${rowIndex}`}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="flex justify-center gap-3"
+                      className="flex justify-center gap-2 sm:gap-3 flex-wrap"
                     >
                       {row.map((item) => {
                         const category = CATEGORIES.find(c => c.id === item.category) || CATEGORIES[4];
@@ -595,11 +597,11 @@ export default function App() {
                             className="group relative"
                           >
                             <div className={cn(
-                              "w-28 h-14 sm:w-36 sm:h-18 bg-stone-900 border-b-2 border-r-2 rounded-lg flex flex-col items-center justify-center p-2 text-center shadow-2xl cursor-default overflow-hidden transition-all group-hover:brightness-125",
+                              "w-24 h-12 xs:w-28 xs:h-14 sm:w-36 sm:h-18 bg-stone-900 border-b-2 border-r-2 rounded-lg flex flex-col items-center justify-center p-1.5 sm:p-2 text-center shadow-2xl cursor-default overflow-hidden transition-all group-hover:brightness-125",
                               category.color
                             )}>
                               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-                              <span className="text-[10px] sm:text-xs font-medium text-stone-300 line-clamp-2 leading-tight tracking-wide z-10">
+                              <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-stone-300 line-clamp-2 leading-tight tracking-wide z-10">
                                 {item.text}
                               </span>
                               {item.logs && item.logs.length > 0 && (
@@ -816,14 +818,14 @@ export default function App() {
                 <motion.div 
                   key={decision.id}
                   layoutId={decision.id}
-                  className="bg-stone-900 border border-stone-800 p-6 rounded-3xl shadow-xl relative group"
+                  className="bg-stone-900 border border-stone-800 p-4 sm:p-6 rounded-3xl shadow-xl relative group"
                 >
                   <div className="flex items-center gap-2 text-amber-500 text-[10px] font-bold uppercase tracking-widest mb-3">
                     <Clock size={12} /> {new Date(decision.timestamp).toLocaleDateString()}
                   </div>
-                  <h3 className="text-xl font-bold text-stone-100 mb-4">{decision.content}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-stone-100 mb-4">{decision.content}</h3>
                   
-                  <div className="bg-stone-950/50 border-l-2 border-amber-500 p-4 rounded-r-xl">
+                  <div className="bg-stone-950/50 border-l-2 border-amber-500 p-3 sm:p-4 rounded-r-xl">
                     <div className="flex items-center gap-2 text-stone-500 text-[10px] font-bold uppercase tracking-widest mb-2">
                       <Sparkles size={10} /> {lang === 'zh' ? '十年后的视角' : '10-Year Perspective'}
                     </div>
@@ -1044,12 +1046,12 @@ export default function App() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setIsAddingDecision(true)}
-                className="w-full py-5 rounded-3xl bg-stone-900 border border-stone-800 text-stone-200 font-bold shadow-2xl flex items-center justify-center gap-3 group hover:border-amber-500/50 transition-all"
+                className="w-full py-4 sm:py-5 rounded-3xl bg-stone-900 border border-stone-800 text-stone-200 font-bold shadow-2xl flex items-center justify-center gap-3 group hover:border-amber-500/50 transition-all"
               >
                 <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-stone-950 group-hover:scale-110 transition-transform">
                   <Plus size={20} />
                 </div>
-                <span>{lang === 'zh' ? '记录新决策' : 'Record New Decision'}</span>
+                <span className="text-sm sm:text-base">{lang === 'zh' ? '记录新决策' : 'Record New Decision'}</span>
               </motion.button>
             </div>
           </motion.div>
